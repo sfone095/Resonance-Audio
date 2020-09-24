@@ -84,35 +84,43 @@ function updatePositions(elements) {
   }
 }
 
-let recordAudio;
+// let recordAudio;
+
+let microStream;
 
 /**
  * @private
  */
 async function initAudio() {
-  let stream = await navigator.mediaDevices.getUserMedia({
-    audio: true
-  });
+  // if (microStream) {
+  //   microStream.getTracks().forEach(track => {
+  //     track.enabled = true;
+  //   })
+  // } else {
+    microStream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+  // }
 
-  recordAudio = RecordRTC(stream, {
-    type: 'audio',
-    mimeType: 'audio/webm',
-    sampleRate: 44100,
-    desiredSampRate: 16000,
-    numberOfAudioChannels: 1
-  });
+  // recordAudio = RecordRTC(stream, {
+  //   type: 'audio',
+  //   mimeType: 'audio/webm',
+  //   sampleRate: 44100,
+  //   desiredSampRate: 16000,
+  //   numberOfAudioChannels: 1
+  // });
 
   // Create <audio> streaming audio source.
   audioContext = new (window.AudioContext || window.webkitAudioContext);
-  let audioSource = 'resources/cube-sound.wav';
-  audioElement = document.createElement('audio');
-  audioElement.src = audioSource;
-  audioElement.crossOrigin = 'anonymous';
-  audioElement.load();
-  audioElement.loop = true;
+  // let audioSource = 'resources/cube-sound.wav';
+  // audioElement = document.createElement('audio');
+  // audioElement.src = audioSource;
+  // audioElement.crossOrigin = 'anonymous';
+  // audioElement.load();
+  // audioElement.loop = true;
 
   audioElementSource =
-    audioContext.createMediaStreamSource(stream);
+    audioContext.createMediaStreamSource(microStream);
 
   // audioElementSource =
   //   audioContext.createMediaElementSource(audioElement);
@@ -158,16 +166,22 @@ let onLoad = async function() {
   sourcePlayback.onclick = async function(event) {
     switch (event.target.textContent) {
       case 'Play': {
-        if (!audioReady) {
+        // if (!audioReady) {
           await initAudio();
-        }
+        // }
         event.target.textContent = 'Pause';
         // audioElement.play();
       }
       break;
       case 'Pause': {
         event.target.textContent = 'Play';
-        audioElement.pause();
+        // audioElement.pause();
+
+        if (microStream) {
+          microStream.getTracks().forEach(track => {
+            track.stop();
+          });
+        }
       }
       break;
     }
