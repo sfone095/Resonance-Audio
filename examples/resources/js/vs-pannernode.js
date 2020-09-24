@@ -84,10 +84,24 @@ function updatePositions(elements) {
   }
 }
 
+let recordAudio;
+
 /**
  * @private
  */
-function initAudio() {
+async function initAudio() {
+  let stream = await navigator.mediaDevices.getUserMedia({
+    audio: true
+  });
+
+  recordAudio = RecordRTC(stream, {
+    type: 'audio',
+    mimeType: 'audio/webm',
+    sampleRate: 44100,
+    desiredSampRate: 16000,
+    numberOfAudioChannels: 1
+  });
+
   // Create <audio> streaming audio source.
   audioContext = new (window.AudioContext || window.webkitAudioContext);
   let audioSource = 'resources/cube-sound.wav';
@@ -96,8 +110,12 @@ function initAudio() {
   audioElement.crossOrigin = 'anonymous';
   audioElement.load();
   audioElement.loop = true;
+
   audioElementSource =
-    audioContext.createMediaElementSource(audioElement);
+    audioContext.createMediaStreamSource(stream);
+
+  // audioElementSource =
+  //   audioContext.createMediaElementSource(audioElement);
 
   // Create gain nodes.
   noneGain = audioContext.createGain();
@@ -134,17 +152,17 @@ function initAudio() {
   selectRenderingMode();
 }
 
-let onLoad = function() {
+let onLoad = async function() {
   // Initialize play button functionality.
   let sourcePlayback = document.getElementById('sourceButton');
-  sourcePlayback.onclick = function(event) {
+  sourcePlayback.onclick = async function(event) {
     switch (event.target.textContent) {
       case 'Play': {
         if (!audioReady) {
-          initAudio();
+          await initAudio();
         }
         event.target.textContent = 'Pause';
-        audioElement.play();
+        // audioElement.play();
       }
       break;
       case 'Pause': {
@@ -180,4 +198,5 @@ let onLoad = function() {
   ];
   new CanvasControl(canvas, elements, updatePositions);
 };
+
 window.addEventListener('load', onLoad);
